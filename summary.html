@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>邮箱摘要与关键信息</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            margin: 40px auto;
+            padding: 30px;
+            max-width: 1000px;
+        }
+        h2 {
+            color: #333;
+            margin-top: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background: #667eea;
+            color: #fff;
+        }
+        tr:nth-child(even) { background: #f9f9f9; }
+        .input-area {
+            margin-bottom: 20px;
+        }
+        .input-area input {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin-right: 10px;
+        }
+        .input-area button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background: #667eea;
+            color: #fff;
+            cursor: pointer;
+        }
+        .input-area button:hover {
+            background: #764ba2;
+        }
+        #msg { color: red; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>邮箱摘要与关键信息</h1>
+        <div class="input-area">
+            <input type="text" id="mailboxid" placeholder="请输入邮箱ID (mailbox_id)">
+            <button onclick="loadData()">刷新</button>
+            <span id="msg"></span>
+        </div>
+        <h2>关键信息 (important-details)</h2>
+        <table id="importantTable">
+            <thead>
+                <tr><th>Key</th><th>Value</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <h2>邮件摘要 (summaries)</h2>
+        <table id="summaryTable">
+            <thead>
+                <tr><th>Mail ID</th><th>Summary Text</th><th>Is Checked</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <h2>邮件摘要（仅未处理）</h2>
+        <table id="todoTable">
+            <thead>
+                <tr><th>Mail ID</th><th>Summary Text</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <script>
+    const API_BASE_URL = 'https://api.leoc.li'; // 根据实际后端地址修改
+
+    // 获取 cookie 中的 mailbox_id
+    function getMailboxIdFromCookie() {
+        const match = document.cookie.match(/(?:^|;\s*)mailbox_id=([^;]*)/);
+        return match ? decodeURIComponent(match[1]) : '';
+    }
+
+    // 页面加载时自动填充并加载
+    window.onload = function() {
+        const mailboxid = getMailboxIdFromCookie();
+        if (mailboxid) {
+            document.getElementById('mailboxid').value = mailboxid;
+            loadData();
+        }
+    };
+
+    async function loadData() {
+        const mailboxid = document.getElementById('mailboxid').value.trim();
+        const msg = document.getElementById('msg');
+        msg.textContent = '';
+        if (!mailboxid) {
+            msg.textContent = '请输入邮箱ID';
+            return;
+        }
+        // 清空表格
+        document.querySelector('#importantTable tbody').innerHTML = '';
+        document.querySelector('#summaryTable tbody').innerHTML = '';
+        document.querySelector('#todoTable tbody').innerHTML = '';
+        try {
+            // important-details
+            const importantRes = await fetch(`${API_BASE_URL}/mailbox/${mailboxid}/important-details/`);
+            const importantData = await importantRes.json();
+            if (importantRes.ok) {
+                const tbody = document.querySelector('#importantTable tbody');
+                importantData.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${item.key}</td><td>${item.value}</td>`;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                throw new Error(importantData.detail || '获取关键信息失败');
+            }
+            // summaries
+            const summaryRes = await fetch(`${API_BASE_URL}/mailbox/${mailboxid}/summaries/`);
+            const summaryData = await summaryRes.json();
+            if (summaryRes.ok) {
+                const tbody = document.querySelector('#summaryTable tbody');
+                summaryData.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${item.mail_id}</td><td>${item.summary_text}</td><td>${item.ischecked ? '是' : '否'}</td>`;
+                    tbody.appendChild(tr);
+                });
+                // 仅未处理（ischecked为false）的摘要
+                const todoTbody = document.querySelector('#todoTable tbody');
+                summaryData.filter(item => !item.ischecked).forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${item.mail_id}</td><td>${item.summary_text}</td>`;
+                    todoTbody.appendChild(tr);
+                });
+            } else {
+                throw new Error(summaryData.detail || '获取摘要失败');
+            }
+        } catch (err) {
+            msg.textContent = err.message;
+        }
+    }
+    </script>
+</body>
+</html> 

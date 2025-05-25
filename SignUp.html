@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- 页面标题 -->
+    <title>Sign Up</title>
+    
+    <!-- 引入注册页面的自定义样式表 -->
+    <link rel="stylesheet" href="css/logon.css">
+    <style>
+        /* 设置页面背景样式 */
+        body {
+           /* 使用渐变背景 */
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            /* 背景图片铺满整个屏幕 */
+            background-size: cover;
+            /* 设置字体 */
+            font-family: Arial, sans-serif;
+            /* 使用弹性布局居中内容 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* 设置页面高度和外边距 */
+            height: 100vh;
+            margin: 0;
+            /* 添加半透明背景颜色 */
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        /* 主体区域样式 */
+        .主体区 {
+            /* 设置背景颜色和透明度 */
+            background-color: rgb(255, 255, 255);
+            backface-visibility: 60%;
+            /* 背景图片样式 */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            /* 圆角和阴影效果 */
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            /* 内边距和宽度 */
+            padding: 30px;
+            width: 350px;
+        }
+        /* 注册框样式 */
+        .注册框 {
+            /* 文字居中 */
+            text-align: center;
+        }
+        .注册框 h2 {
+            /* 标题颜色和下边距 */
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .注册框 div {
+            /* 输入框之间的间距 */
+            margin-bottom: 15px;
+        }
+        .注册框 span {
+            /* 标签样式 */
+            display: block;
+            text-align: left;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        /* 输入框样式 */
+        .text {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        /* 提交按钮样式 */
+        .提交 {
+            width: 100%;
+            padding: 10px;
+            background-color: #1867de;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .提交:hover {
+            /* 鼠标悬停时的背景颜色 */
+            background-color: #1867de;
+        }
+    </style>
+</head>
+<body>
+    <!-- 主体区域容器 -->
+    <div class="主体区">
+        <!-- 注册框 -->
+        <div class="注册框">
+            <!-- 注册表单 -->
+            <form action="">
+                <h2>Sign Up
+                </h2>
+                <div>
+                    <span>Email</span>
+                    <input type="email" id="email" class="text" placeholder="Please enter your email" required>
+                </div>
+                <!-- 密码输入区域 -->
+                <div>
+                    <span>Password</span>
+                    <input type="password" id="password" class="text" placeholder="Please enter your password" required>
+                </div>
+                <!-- 确认密码输入区域 -->
+                <div>
+                    <span>Confirm Password</span>
+                    <input type="password" id="confirm_password" class="text" placeholder="Please confirm your password" required>
+                </div>
+                <!-- 注册按钮 -->
+                <div>
+                    <input type="submit" class="Submit" value="Sign Up">
+                </div>
+                <!-- 返回登录页面按钮 -->
+                <div>
+                    <a href="LogIn.html"><input type="button" class="Submit" value="Back to Login"></a>
+                </div>
+                <div id="msg" style="color:red;margin-top:10px;"></div>
+            </form>
+        </div>
+    </div>
+<script>
+const API_BASE_URL = 'https://api.leoc.li'; // 根据实际后端地址修改
+
+document.querySelector('form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    const msgDiv = document.getElementById('msg');
+    msgDiv.textContent = '';
+    if (password !== confirmPassword) {
+        msgDiv.textContent = '两次输入的密码不一致！';
+        return;
+    }
+    try {
+        const res = await fetch(`${API_BASE_URL}/register-user/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || '注册失败');
+        msgDiv.style.color = 'green';
+        msgDiv.textContent = '注册成功，请前往登录！';
+        setTimeout(()=>{ window.location.href = 'LogIn.html'; }, 1000);
+    } catch (err) {
+        msgDiv.style.color = 'red';
+        msgDiv.textContent = err.message;
+    }
+});
+</script>
+</body>
+</html>

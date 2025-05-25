@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>创建或进入邮箱</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            padding: 40px 30px 30px 30px;
+            width: 350px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .input-area {
+            margin-bottom: 25px;
+        }
+        .input-area input {
+            width: 70%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin-bottom: 8px;
+        }
+        .input-area button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background: #667eea;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .input-area button:hover {
+            background: #764ba2;
+        }
+        #msg {
+            color: red;
+            margin-bottom: 10px;
+            min-height: 20px;
+        }
+        .divider {
+            margin: 25px 0 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>邮箱管理</h1>
+        <div id="msg"></div>
+        <!-- 创建邮箱 -->
+        <div class="input-area">
+            <input type="text" id="prefix" placeholder="邮箱前缀/名称"><br>
+            <input type="password" id="mailboxPassword" placeholder="邮箱密码"><br>
+            <button onclick="createMailbox()">创建邮箱</button>
+        </div>
+        <div class="divider"></div>
+        <!-- 进入邮箱 -->
+        <div class="input-area">
+            <input type="text" id="mailboxId" placeholder="请输入邮箱ID"><br>
+            <button onclick="enterMailbox()">进入邮箱</button>
+        </div>
+    </div>
+    <script>
+    const API_BASE_URL = 'https://api.leoc.li'; // 根据实际后端地址修改
+
+    // 获取 cookie 中的 user_id
+    function getUserIdFromCookie() {
+        const match = document.cookie.match(/(?:^|;\s*)user_id=([^;]*)/);
+        return match ? decodeURIComponent(match[1]) : '';
+    }
+
+    // 创建邮箱
+    async function createMailbox() {
+        const prefix = document.getElementById('prefix').value.trim();
+        const password = document.getElementById('mailboxPassword').value.trim();
+        const msg = document.getElementById('msg');
+        msg.className = '';
+        msg.textContent = '';
+        if (!prefix || !password) {
+            msg.textContent = '请输入邮箱前缀和密码';
+            return;
+        }
+        const user_id = getUserIdFromCookie();
+        if (!user_id) {
+            msg.textContent = '未检测到用户登录，请先登录';
+            return;
+        }
+        try {
+            const res = await fetch(`${API_BASE_URL}/register-mailbox/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id, prefix, password })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || '创建失败');
+            msg.className = 'success';
+            msg.textContent = `创建成功！邮箱ID: ${data.mailbox_id}`;
+            // 存储 mailbox_id 到 cookie
+            document.cookie = `mailbox_id=${data.mailbox_id}; path=/;`;
+            // 可选：自动跳转
+            // setTimeout(()=>{ window.location.href = `summary.html?mailbox_id=${data.mailbox_id}`; }, 1200);
+        } catch (err) {
+            msg.className = '';
+            msg.textContent = err.message;
+        }
+    }
+
+    // 进入邮箱
+    function enterMailbox() {
+        const mailboxId = document.getElementById('mailboxId').value.trim();
+        const msg = document.getElementById('msg');
+        msg.className = '';
+        msg.textContent = '';
+        if (!mailboxId) {
+            msg.textContent = '请输入邮箱ID';
+            return;
+        }
+        window.location.href = `summary.html?mailbox_id=${encodeURIComponent(mailboxId)}`;
+    }
+    </script>
+</body>
+</html> 

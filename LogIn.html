@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- 设置字符编码为UTF-8 -->
+    <meta charset="UTF-8">
+    <!-- 页面标题 -->
+    <title>登录</title>
+    
+    <!-- 引入登录页面的自定义样式表 -->
+    <link rel="stylesheet" href="css/login.css">
+</head>	
+    <!-- 设置页面背景样式 -->
+	<style>
+		body {
+			/* 使用渐变背景 */
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			/* 背景铺满整个屏幕 */
+			background-size: cover;
+			/* 背景固定 */
+			background-attachment: fixed;
+			/* 居中内容 */
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			height: 100vh;
+			margin: 0;
+			font-family: 'Arial', sans-serif;
+		} 
+		.主体区 {
+			background-color: rgba(255, 255, 255, 0.9);
+			border-radius: 15px;
+			box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+			padding: 40px;
+			width: 350px;
+			text-align: center;
+			transition: all 0.3s ease;
+		}
+		.主体区:hover {
+			transform: scale(1.02);
+			box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+		}
+		.登录框 h2 {
+			color: #333;
+			margin-bottom: 30px;
+		}
+		.登录框 input.text {
+			width: 100%;
+			padding: 10px;
+			margin-bottom: 15px;
+			border: 1px solid #ddd;
+			border-radius: 5px;
+			transition: border-color 0.3s ease;
+		}
+		.登录框 input.text:focus {
+			outline: none;
+			border-color: #667eea;
+		}
+		.登录框 .提交 {
+			width: 100%;
+			padding: 12px;
+			background: linear-gradient(to right, #667eea, #764ba2);
+			color: white;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			margin-bottom: 10px;
+			transition: all 0.3s ease;
+		}
+		.登录框 .提交:hover {
+			opacity: 0.9;
+			transform: translateY(-3px);
+		}
+		.登录框 input[type="button"]:last-child {
+			background: #f1f1f1;
+			color: #333;
+		}
+	</style>
+<body>
+    <!-- 主体区域容器 -->
+    <div class="主体区">
+        <!-- 登录框 -->
+        <div class="登录框">
+            <!-- 登录表单 -->
+            <form action="">
+                <!-- 登录标题 -->
+                <h2>Log In</h2>
+                <!-- 邮箱输入区域 -->
+                <div>
+                    <span>Email</span>
+                    <input type="email" id="email" class="text" placeholder="Please enter your email" required>
+                </div>
+                <!-- 密码输入区域 -->
+                <div>
+                    <span>Password</span>
+                    <input type="password" id="password" class="text" placeholder="Please enter your password" required>
+                </div>
+                <!-- 登录按钮，点击提交表单 -->
+                <div>
+                    <input type="submit" class="提交" value="Log In">
+                </div>
+                <!-- 注册按钮，点击跳转到注册页面 -->
+                <div>
+                    <a href="SignUp.html"><input type="button" class="提交" value="Sign Up"></a>
+                </div>
+                <!-- 返回按钮，点击返回首页 -->
+                <div>
+                    <a href="index.html"><input type="button" value="Back"></a>
+                </div>
+                <div id="msg" style="color:red;margin-top:10px;"></div>
+            </form>
+        </div>
+    </div>
+<script>
+const API_BASE_URL = 'https://api.leoc.li'; // 根据实际后端地址修改
+
+document.querySelector('form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const msgDiv = document.getElementById('msg');
+    msgDiv.textContent = '';
+    try {
+        const res = await fetch(`${API_BASE_URL}/login/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || '登录失败');
+        // 保存 user_id 到 cookie
+        document.cookie = `user_id=${data.user_id}; path=/;`;
+        msgDiv.style.color = 'green';
+        msgDiv.textContent = '登录成功，user_id 已保存到 cookie！';
+        // 跳转到首页或其他页面
+        setTimeout(()=>{ window.location.href = 'mailbox.html'; }, 1000);
+    } catch (err) {
+        msgDiv.style.color = 'red';
+        msgDiv.textContent = err.message;
+    }
+});
+</script>
+</body>
+</html>
